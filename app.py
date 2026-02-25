@@ -3,18 +3,10 @@ import google.generativeai as genai
 import uuid
 import json
 import os
+import time
 from PIL import Image
 
-# --- 1. SƏNİN AI STUDIO TƏLİMATIN ---
-# AI Studio-da yazdığın o özəl mətn bura əlavə olundu:
-# SİSTEM TƏLİMATINI BELƏ DƏYİŞSƏN DAHA STABİL OLAR:
-SİSTEM_TƏLİMATI = """
-    Sən Ömərin köməkçisisən. Şəkilləri analiz edə bilirsən. 
-    Sol tərəfdəki sidebar-da çat tarixçəsi var. 
-    Hər zaman səmimi və Azərbaycan dilində cavab ver.
-    """
-
-# --- 2. YADDAŞ SİSTEMİ (JSON) ---
+# --- 1. DAİMİ YADDAŞ (JSON) SİSTEMİ ---
 DB_FILE = "omar_chat_history.json"
 
 def load_data():
@@ -25,29 +17,10 @@ def load_data():
         except: return {}
     return {}
 
-def save_data(data):
-    try:
-        with open(DB_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except: pass
+def save_data():
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.archives, f, ensure_ascii=False, indent=4)
 
-# --- 3. API VƏ MODEL AYARI ---
-if "custom_api_key" not in st.session_state:
-    st.session_state.custom_api_key = None
-
-# Əvvəlcə secrets-dən baxır, yoxdursa istifadəçidən soruşacaq
-main_key = st.secrets.get("GEMINI_API_KEY")
-active_key = st.session_state.custom_api_key if st.session_state.custom_api_key else main_key
-
-if active_key:
-    genai.configure(api_key=active_key)
-
-# Modeli sənin Playground-da seçdiyin yeni versiya ilə eyniləşdiririk
-model = genai.GenerativeModel(
-    model_name="gemini-2.5-flash", # <--- Dəqiq belə yazıldığına əmin ol
-    system_instruction=SİSTEM_TƏLİMATI
-)
-# --- 4. SESSION STATE BAŞLATMA ---
 if "archives" not in st.session_state:
     st.session_state.archives = load_data()
 
@@ -55,41 +28,65 @@ if not st.session_state.archives:
     uid = str(uuid.uuid4())
     st.session_state.archives[uid] = {"title": "Yeni Söhbət 💬", "msgs": []}
     st.session_state.active_id = uid
-    save_data(st.session_state.archives)
+    save_data()
 
 if "active_id" not in st.session_state:
     st.session_state.active_id = list(st.session_state.archives.keys())[0]
 
-# --- 5. SIDEBAR (TARİXCƏ VƏ SİLMƏK FUNKSİYASI) ---
+# --- 2. CSS: SIDEBAR VƏ DÜYMƏ DİZAYNI ---
+st.set_page_config(page_title="Omar's AI", page_icon="🚀", layout="wide")
+
+st.markdown("""
+    <style>
+    [data-testid="stSidebarCollapse"] svg { transform: scaleX(-1) !important; }
+    
+    .stButton button {
+        border-radius: 10px !important;
+        height: 38px !important;
+    }
+    
+    /* Zibil düyməsinin sidebar daxilində görünüşü */
+    button[key^="del_"] {
+        background-color: rgba(255, 75, 75, 0.1) !important;
+        color: #ff4b4b !important;
+        border: 1px solid rgba(255, 75, 75, 0.2) !important;
+    }
+    button[key^="del_"]:hover {
+        background-color: #ff4b4b !important;
+        color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 3. API SETUP (Gemini 2.5 Flash) ---
+genai.configure(api_key=st.secrets.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-2.5-flash")
+
+# --- 4. SIDEBAR ---
 with st.sidebar:
     st.title("🚀 Omar's AI")
     
-    col_new, col_bomb = st.columns([3, 1])
-    with col_new:
-        if st.button("➕ Yeni Söhbət", use_container_width=True):
-            uid = str(uuid.uuid4())
-            st.session_state.archives[uid] = {"title": "Yeni Söhbət 💬", "msgs": []}
-            st.session_state.active_id = uid
-            save_data(st.session_state.archives)
-            st.rerun()
-    with col_bomb:
-        if st.button("💣", help="Bütün tarixçəni sil"):
-            st.session_state.archives = {}
-            save_data({})
-            st.rerun()
+    st.subheader("🖼️ Şəkil Analizi")
+    uploaded_file = st.file_uploader("Şəkil yüklə", type=["jpg", "png", "jpeg"])
     
     st.divider()
-    st.subheader("📚 Keçmiş Söhbətlər")
     
-    # Söhbətlərin siyahısı və silmə düyməsi
+    if st.button("➕ Yeni Söhbət", use_container_width=True):
+        uid = str(uuid.uuid4())
+        st.session_state.archives[uid] = {"title": "Yeni Söhbət 💬", "msgs": []}
+        st.session_state.active_id = uid
+        save_data()
+        st.rerun()
+    
+    st.subheader("📚 Keçmiş")
     for c_id, data in list(st.session_state.archives.items()):
-        col_chat, col_del = st.columns([4, 1])
-        with col_chat:
-            if st.button(f"💬 {data['title'][:15]}", key=f"v_{c_id}", use_container_width=True):
+        col_btn, col_del = st.columns([0.8, 0.2])
+        with col_btn:
+            if st.button(f"💬 {data['title'][:14]}", key=f"sel_{c_id}", use_container_width=True):
                 st.session_state.active_id = c_id
                 st.rerun()
         with col_del:
-            if st.button("🗑️", key=f"d_{c_id}"):
+            if st.button("🗑️", key=f"del_{c_id}"):
                 del st.session_state.archives[c_id]
                 if not st.session_state.archives:
                     uid = str(uuid.uuid4())
@@ -97,68 +94,56 @@ with st.sidebar:
                     st.session_state.active_id = uid
                 elif st.session_state.active_id == c_id:
                     st.session_state.active_id = list(st.session_state.archives.keys())[0]
-                save_data(st.session_state.archives)
+                save_data()
                 st.rerun()
 
-# --- 6. ƏSAS ÇAT EKRANI ---
-active_chat = st.session_state.archives.get(st.session_state.active_id)
+# --- 5. ÇAT SAHƏSİ ---
+active_chat = st.session_state.archives[st.session_state.active_id]
+st.subheader(f"📍 {active_chat['title']}")
 
-if active_chat:
-    st.subheader(f"📍 {active_chat['title']}")
+for m in active_chat['msgs']:
+    with st.chat_message(m["role"]):
+        st.markdown(m["content"])
+
+prompt = st.chat_input("Mesajınızı yazın...")
+
+if prompt:
+    if not active_chat['msgs']:
+        active_chat['title'] = prompt[:15]
     
-    # Köhnə mesajları göstər
-    for m in active_chat['msgs']:
-        with st.chat_message(m["role"]):
-            st.markdown(m["content"])
+    active_chat['msgs'].append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-    st.divider()
-    
-    # Şəkil yükləmə hissəsi (Vision üçün)
-    up_file = st.file_uploader("🖼️ Şəkil analizi", type=["jpg", "png", "jpeg"])
-    
-    # Mesaj girişi
-    prompt = st.chat_input("Mesajınızı yazın...")
-
-    if prompt:
-        # İlk mesajdırsa başlığı yenilə
-        if not active_chat['msgs']:
-            active_chat['title'] = prompt[:20]
-        
-        # İstifadəçi mesajını göstər və yaddaşa yaz
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        active_chat['msgs'].append({"role": "user", "content": prompt})
-        save_data(st.session_state.archives)
-
-        # AI-dan cavab al
-        with st.chat_message("assistant"):
-            try:
-                if up_file:
-                    # Şəkilli analiz
-                    img = Image.open(up_file)
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner("AI thinking..."):
+                if uploaded_file:
+                    img = Image.open(uploaded_file)
                     res = model.generate_content([prompt, img])
                 else:
-                    # Normal çat (son 5 mesajı xatırlayır)
-                    history = []
-                    for m in active_chat['msgs'][:-1][-5:]:
-                        role = "model" if m["role"] == "assistant" else "user"
-                        history.append({"role": role, "parts": [m["content"]]})
+                    history_for_api = []
+                    for m in active_chat['msgs'][:-1]:
+                        role = "user" if m["role"] == "user" else "model"
+                        history_for_api.append({"role": role, "parts": [m["content"]]})
                     
-                    chat = model.start_chat(history=history)
-                    res = chat.send_message(prompt)
+                    chat_session = model.start_chat(history=history_for_api)
+                    res = chat_session.send_message(prompt)
                 
-                st.markdown(res.text)
-                active_chat['msgs'].append({"role": "assistant", "content": res.text})
-                save_data(st.session_state.archives)
-                st.rerun()
-                
-            except Exception as e:
-                # Limit və ya 404 xətası çıxarsa dərhal API Key xanası göstər
-                if "429" in str(e) or "404" in str(e) or "400" in str(e):
-                    st.warning("⏱️ API limitində və ya bağlantıda problem var! Yeni API Key daxil et:")
-                    new_key = st.text_input("Gemini API Key:", type="password")
-                    if st.button("Açarı Yenilə"):
-                        st.session_state.custom_api_key = new_key
-                        st.rerun()
-                else:
-                    st.error(f"Gözlənilməz xəta: {e}")
+                full_res = res.text
+            
+            # Sürətli typing (Söz-söz) - Axıcı və professional
+            placeholder = st.empty()
+            disp = ""
+            words = full_res.split(" ")
+            for i, word in enumerate(words):
+                disp += word + " "
+                if i % 2 == 0 or i == len(words) - 1:
+                    placeholder.markdown(disp)
+                    time.sleep(0.015)
+            
+            active_chat['msgs'].append({"role": "assistant", "content": full_res})
+            save_data()
+            
+        except Exception as e:
+            st.error(f"Xəta: {e}")
