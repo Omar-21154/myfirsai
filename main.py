@@ -38,16 +38,40 @@ st.set_page_config(page_title="Omar's AI", page_icon="🚀", layout="wide")
 
 st.markdown("""
     <style>
-    [data-testid="stSidebarCollapse"] svg { transform: scaleX(-1) !important; }
-    .stButton button { border-radius: 10px !important; height: 38px !important; }
-    button[key^="del_"] {
-        background-color: rgba(255, 75, 75, 0.1) !important;
-        color: #ff4b4b !important;
-        border: 1px solid rgba(255, 75, 75, 0.2) !important;
+    /* 1. Mobil ekranı sabitləmək və sağ-sol sürüşməsini söndürmək */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        overflow-x: hidden !important;
+        width: 100vw;
+        position: relative;
     }
-    button[key^="del_"]:hover { background-color: #ff4b4b !important; color: white !important; }
+
+    /* 2. Chat elementlərinin mobilə uyğunlaşdırılması */
+    .stChatMessage {
+        max-width: 95% !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* 3. Şəkil və videoların ekranı aşmaması üçün */
+    img, .stImage, iframe {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* 4. Alt hissədəki boşluqları və scroll ehtimalını minimuma endirmək */
+    [data-testid="stMain"] {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* 5. Sidebarın telefonda daha yaxşı idarə olunması */
+    @media (max-width: 768px) {
+        [data-testid="stSidebar"] {
+            width: 80vw !important;
+        }
+    }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- 3. API SETUP ---
 genai.configure(api_key=st.secrets.get("GEMINI_API_KEY"))
