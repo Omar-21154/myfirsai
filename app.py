@@ -34,7 +34,7 @@ if "active_id" not in st.session_state:
     st.session_state.active_id = list(st.session_state.archives.keys())[0]
 
 # --- 2. CSS: SIDEBAR VƏ DÜYMƏ DİZAYNI ---
-st.set_page_config(page_title="🚀 TEST İŞLƏYİR", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Omar's AI", page_icon="🚀", layout="wide")
 
 st.markdown("""
     <style>
