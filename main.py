@@ -1,46 +1,22 @@
 import streamlit as st
 import google.generativeai as genai
 import uuid
-import json
-import os
 import time
 import re
 from PIL import Image
 
-# --- 1. DAİMİ YADDAŞ (Stabil Versiya) ---
-DB_FILE = "omar_chat_history.json"
-
-def load_data():
-    if not os.path.exists(DB_FILE):
-        return {}
-    try:
-        with open(DB_FILE, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-            return json.loads(content) if content else {}
-    except Exception:
-        return {}
-
-def save_data():
-    try:
-        with open(DB_FILE, "w", encoding="utf-8") as f:
-            json.dump(st.session_state.archives, f, ensure_ascii=False, indent=4)
-    except Exception as e:
-        st.toast(f"Yaddaş xətası: {e}", icon="⚠️")
-
+# --- 1. DAİMİ YADDAŞ (STREAMLIT NATIVE) ---
+# JSON faylından asılılığı ləğv etdik ki, Cloud-da çökməsin
 if "archives" not in st.session_state:
-    st.session_state.archives = load_data()
+    st.session_state.archives = {}
 
 if not st.session_state.archives:
     uid = str(uuid.uuid4())
     st.session_state.archives[uid] = {"title": "Yeni Söhbət 💬", "msgs": []}
     st.session_state.active_id = uid
-    save_data()
 
 if "active_id" not in st.session_state or st.session_state.active_id not in st.session_state.archives:
     st.session_state.active_id = list(st.session_state.archives.keys())[0]
-
-# Mesajları session_state-ə bağlayırıq
-st.session_state.messages = st.session_state.archives[st.session_state.active_id]["msgs"]
 
 # --- 2. CSS: DİZAYN ---
 st.set_page_config(page_title="Omar's AI", page_icon="🚀", layout="wide")
@@ -59,10 +35,9 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. API SETUP (Ehtiyat Key Sistemi) ---
-# Secrets-də həm GEMINI_API_KEY, həm də GEMINI_API_KEY_2 qoya bilərsən
+# --- 3. API SETUP ---
 primary_key = st.secrets.get("GEMINI_API_KEY")
-secondary_key = st.secrets.get("GEMINI_API_KEY_2", primary_key) # İkinci yoxdursa birincini işlət
+secondary_key = st.secrets.get("GEMINI_API_KEY_2", primary_key)
 
 if "current_key" not in st.session_state:
     st.session_state.current_key = primary_key
@@ -85,7 +60,6 @@ with st.sidebar:
         uid = str(uuid.uuid4())
         st.session_state.archives[uid] = {"title": "Yeni Söhbət 💬", "msgs": []}
         st.session_state.active_id = uid
-        save_data()
         st.rerun()
 
     st.subheader("📚 Keçmiş")
@@ -98,7 +72,6 @@ with st.sidebar:
         with col2:
             if st.button("🗑️", key=f"del_{chat_id}", use_container_width=True):
                 del st.session_state.archives[chat_id]
-                save_data()
                 if st.session_state.active_id == chat_id:
                     st.session_state.active_id = list(st.session_state.archives.keys())[0] if st.session_state.archives else None
                 st.rerun()
@@ -148,29 +121,25 @@ if st.session_state.active_id and st.session_state.active_id in st.session_state
                 placeholder.markdown(full_res)
                 
                 active_chat['msgs'].append({"role": "assistant", "content": full_res})
-                save_data()
                 
             except Exception as e:
                 error_msg = str(e)
                 if "429" in error_msg:
-                    # Əgər ehtiyat key varsa, ona keçid edirik
                     if st.session_state.current_key == primary_key and secondary_key != primary_key:
-                        st.info("🔄 Birinci limit doldu, ehtiyat sistemə keçid edilir...")
                         st.session_state.current_key = secondary_key
                         st.rerun()
                     
-                    st.error("🚫 **Limit doldu!**")
+                    st.error("🚫 Limit doldu!")
                     wait_time = 35
                     match = re.search(r"retry in ([\d\.]+)", error_msg)
-                    if match:
-                        wait_time = int(float(match.group(1))) + 1
+                    if match: wait_time = int(float(match.group(1))) + 1
                     
                     timer_place = st.empty()
                     for i in range(wait_time, 0, -1):
-                        timer_place.warning(f"⏳ Yenidən cəhd üçün gözləyin: {i} saniyə")
+                        timer_place.warning(f"⏳ Gözləyin: {i} saniyə")
                         time.sleep(1)
-                    timer_place.success("✅ İndi yenidən yoxlaya bilərsiniz!")
+                    timer_place.success("✅ İndi yoxlayın!")
                 else:
                     st.error(f"⚠️ Xəta: {error_msg}")
 else:
-    st.info("Sol tərəfdən söhbət seçin və ya yenisini yaradın.")
+    st.info("Yeni söhbət yaradın.")
