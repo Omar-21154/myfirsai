@@ -142,4 +142,4 @@ if st.session_state.active_id and st.session_state.active_id in st.session_state
                 else:
                     st.error(f"⚠️ Xəta: {error_msg}")
 else:
-    st.info("Yeni söhbət yaradın.")
+    st.info("Sol tərəfdən söhbət seçin və ya yenisini yaradın.")
