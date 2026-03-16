@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "omar-ai-storag",
+  "private_key_id": "b00e43751d2b801834a355adc57ea25da2955ef6",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCwHXGRUNvL1AOM\n74aQuLecAC5JTOcxPA0JTHrI2XeODXB1xLuiZYMiKkEZ6ecVfa05eP1aNX1vSbAg\ntYFaQHGB9ToUg7PXZhu3aBsQ7gpXb18T2HzwAU/xpejl4B0Zq5GLsUt2Z1dhX+jE\nFTl2fKYZp1iafQzV53/8UH03VTNXfIkVOr75IvXmjbi6aIf785iHBzcAv1mFuCxS\nxZOQ8oQ1in51qpf1tqxygm9caA8eArIHU/0b3RkZ9FeVhBN7P/tU7i9XLT6nCJ3g\nlP1K3tjDx9DMRze2oqi+irfkFohbp2buhDvVUCwVFNK2wlvtAhQqjmrMF3oJLd3v\nKpRMxPeXAgMBAAECggEAV8eFKHHN660Ty/ZC8vUuhvHMIDrVbMPKl5zoAh3qKgJm\n0DwrbYj9MFUxN5JO3HZUlbXJSWIp0ANBZzwwaeR+7tBkj38Jb030eJjKDMkonGXl\nVMXtl85/oykXiSQIPRg3phHLVAu0ENO1963Ag18jhtvTHMVBVYhaUU9o6eBsg6i5\nYIcFwbWLoQUuzgGHr1muGSETipigxdtLPap2StbhCos9Qf6Fg8m4cd98lDBvtvGa\nU+Pc1dmcz9tLe5vyNsiqBhcpQpTFEZmD9ltE40Fqh54ma69x1qvS5hk6LX5YEc09\nDsLedwPrqm5kpbR6zB+cz1iTD31WsQK8ZHt2+r6TkQKBgQDmwmypxKCTnjcE9+Go\ncpqYosXUeDi5j/E082YlXQjZgkeIJkOW/ZPiOn+c6Q9KHDSsbjF+fLV/uXBDrgvl\nPDT7k+5ZLsA2seubmEobHYIwaSnAZKNrPog05n0TnYL1C3M12mXe/5JMBoz7XHbQ\na5MSEJhvsJiOz3VOVrN+bnq7zwKBgQDDYOagYws5uJFjVW5qeWNtYr7SIPr21rfX\nAWhpg4lleLVIszvHKwFAxDfIKbd9a3BjteE+qkOknp/XkRvUSTFpDDf+pYWidLKB\ndOJNiLOMtEze/jU6cl6DeMi6RNUg7+APqTp/BXuFTMvT51LGUY2o5kOcw3NFfahf\nw4oIMN2RuQKBgGL6Fb2jlvR6MkMxR1sG/QRnHM+LWVlOQjliBPgVtYwF80SUlP0Y\neuvYB5B37pTtEDK9eQE14GuOUHbXGkcS0e7ufpdGFC/hlJtCcNa8i3DUSpI5GFcR\nlT6Ldi6JqvgMFziMGpHRsSBm1uWhvVycJ5LiB2AwsN7gYQJe8dJS9NXFAoGBAKtu\nOu4/+XmMGQWv0FJccIFqQ0Tc61fqzyQ4eAUdBVGjuG0x1yHK+i55/PgEopvJybOz\nww/ZFcE77cSX7nM2RcSGlBs74SXKf1ZX2LlvWRv8l/aR1uKRt5xkPrwx6VAdKdyU\nAF+zz84GtFIahua8aC/q2yiR1nMC7toYGOVW+xMBAoGAPqEoejRsWgrGyh8Uf0Xt\n7ITUtKgomt3ME4mZfxiXD53Ib0prBbSGY8Uy5i2dKKD5vE/SKlPecGhwIYCEBs2b\nI99VCifoH99JhHFJV917F3L7RiVPDVmLUHKScmnLJ9IXr4sMaidumEeHxqSJfOjA\nBSnOfwrSJKU4tRVEexewW70=\n-----END PRIVATE KEY-----\n",
+  "client_email": "omar-bot@omar-ai-storag.iam.gserviceaccount.com",
+  "client_id": "113503750261125390952",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/omar-bot%40omar-ai-storag.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
