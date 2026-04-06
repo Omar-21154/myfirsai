@@ -2,23 +2,15 @@ import streamlit as st
 import google.generativeai as genai
 import uuid
 import time
+import os
 
 # --- 1. SƏHİFƏ AYARLARI ---
-# Title OMNI olaraq dəyişdirildi, icon olaraq isə 32x32-lik faylın təyin olundu
-st.set_page_config(
-    page_title="OMNI", 
-    page_icon="favicon-32x32.png", 
-    layout="wide"
-)
+icon_path = "favicon-32x32.png"
+sidebar_logo = "favicon-32x32.png"
 
-# Xüsusi Icon Linkləri və Dizayn (Border-radiuslar)
+st.set_page_config(page_title="OMNI", page_icon=icon_path if os.path.exists(icon_path) else "🚀", layout="wide")
+
 st.markdown("""
-    <head>
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-        <link rel="manifest" href="/site.webmanifest">
-    </head>
     <style>
     .stChatMessage {
         border-radius: 20px !important;
@@ -33,6 +25,13 @@ st.markdown("""
     }
     section[data-testid="stSidebar"] {
         background-color: #f8f9fa;
+    }
+    /* Loqonu mərkəzləmək üçün */
+    [data-testid="stSidebar"] [data-testid="stImage"] {
+        text-align: center;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -54,7 +53,6 @@ if "active_id" not in st.session_state or st.session_state.active_id not in st.s
 # --- 3. MODEL QURULUŞU ---
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # Burada gemini-2.0-flash (və ya gemini-1.5-flash) istifadə etməyin məsləhətdir
     model = genai.GenerativeModel("gemini-2.5-flash")
 except Exception:
     st.error("API Key tapılmadı!")
@@ -70,19 +68,23 @@ def build_history(messages):
     return history
 
 def word_stream(response):
-    """Söz-söz çap effekti"""
+    """Gemini chunk-larını söz-söz yield edir"""
     for chunk in response:
         if chunk.text:
             words = chunk.text.split(" ")
             for i, word in enumerate(words):
                 yield ("" if i == 0 else " ") + word
-                time.sleep(0.02) # Sürəti bir az artırdım (0.04-dən 0.02-yə)
+                time.sleep(0.04)
 
 
 # --- 5. SIDEBAR ---
 with st.sidebar:
-    # Sidebar başlığı da yeniləndi
+    # --- YENİ: LOGO VƏ RAKETLİ TİTLE ---
+    if os.path.exists(sidebar_logo):
+        st.image(sidebar_logo, width=80)
+    
     st.title("🚀 OMNI")
+    
     if st.button("➕ Yeni Söhbət", use_container_width=True):
         new_id = str(uuid.uuid4())
         st.session_state.all_chats[new_id] = {"title": "Yeni Söhbət", "messages": []}
@@ -137,7 +139,7 @@ if prompt := st.chat_input("Nə düşünürsən?"):
 
                 with st.spinner("Düşünürəm..."):
                     response = chat_session.send_message(prompt, stream=True)
-                    # Stream obyektini birbaşa istifadə edirik
+                    # Smooth typing üçün st.write_stream istifadə edirik
                     full_text = st.write_stream(word_stream(response))
 
                 current_chat["messages"].append({"role": "assistant", "content": full_text})
