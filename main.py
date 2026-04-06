@@ -4,9 +4,21 @@ import uuid
 import time
 
 # --- 1. SƏHİFƏ AYARLARI ---
-st.set_page_config(page_title="Omar's AI", page_icon="🚀", layout="wide")
+# Title OMNI olaraq dəyişdirildi, icon olaraq isə 32x32-lik faylın təyin olundu
+st.set_page_config(
+    page_title="OMNI", 
+    page_icon="favicon-32x32.png", 
+    layout="wide"
+)
 
+# Xüsusi Icon Linkləri və Dizayn (Border-radiuslar)
 st.markdown("""
+    <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="manifest" href="/site.webmanifest">
+    </head>
     <style>
     .stChatMessage {
         border-radius: 20px !important;
@@ -42,6 +54,7 @@ if "active_id" not in st.session_state or st.session_state.active_id not in st.s
 # --- 3. MODEL QURULUŞU ---
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    # Burada gemini-2.0-flash (və ya gemini-1.5-flash) istifadə etməyin məsləhətdir
     model = genai.GenerativeModel("gemini-2.5-flash")
 except Exception:
     st.error("API Key tapılmadı!")
@@ -57,19 +70,19 @@ def build_history(messages):
     return history
 
 def word_stream(response):
-    """Gemini chunk-larını söz-söz yield edir"""
+    """Söz-söz çap effekti"""
     for chunk in response:
         if chunk.text:
             words = chunk.text.split(" ")
             for i, word in enumerate(words):
-                # Sözlər arasına boşluq əlavə et (birinci söz istisna)
                 yield ("" if i == 0 else " ") + word
-                time.sleep(0.04)  # Söz-söz gecikmə (istəyə görə tənzimlə)
+                time.sleep(0.02) # Sürəti bir az artırdım (0.04-dən 0.02-yə)
 
 
 # --- 5. SIDEBAR ---
 with st.sidebar:
-    st.title("🚀 Omar's AI")
+    # Sidebar başlığı da yeniləndi
+    st.title("🚀 OMNI")
     if st.button("➕ Yeni Söhbət", use_container_width=True):
         new_id = str(uuid.uuid4())
         st.session_state.all_chats[new_id] = {"title": "Yeni Söhbət", "messages": []}
@@ -122,14 +135,10 @@ if prompt := st.chat_input("Nə düşünürsən?"):
                 history = build_history(current_chat["messages"])
                 chat_session = model.start_chat(history=history)
 
-                # Spinner — cavab gəlməmişdən əvvəl
                 with st.spinner("Düşünürəm..."):
                     response = chat_session.send_message(prompt, stream=True)
-                    # İlk chunk-u gözləyirik ki spinner görünsün
-                    chunks = list(response)
-
-                # Spinner bitdi, smooth typing başlayır
-                full_text = st.write_stream(word_stream(iter(chunks)))
+                    # Stream obyektini birbaşa istifadə edirik
+                    full_text = st.write_stream(word_stream(response))
 
                 current_chat["messages"].append({"role": "assistant", "content": full_text})
 
